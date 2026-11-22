@@ -1,9 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import { Content } from '../generated/denik.md';
+import { t } from '../lib/i18n.js';
 ---
-<Base title="Výzkumný deník" wide>
-  <h1>Výzkumný deník</h1>
-  <p class="lead">Každé hledání v matrikách – kde, co, s jakým výsledkem. I neúspěšná hledání jsou důležitá: říkají, kde už hledat nemusíme.</p>
+<Base title={t.diaryPage.title} wide>
+  <h1>{t.diaryPage.h1}</h1>
+  <p class="lead">{t.diaryPage.lead}</p>
   <div class="table-box small"><Content /></div>
 </Base>

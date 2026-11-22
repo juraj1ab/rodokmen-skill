@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import { t } from '../lib/i18n.js';
 ---
-<Base title="Nenalezeno">
-  <h1>Tahle stránka v rodokmenu není</h1>
-  <p><a href="/">Zpět na úvod</a> nebo <a href="/hledat/">hledat</a>.</p>
+<Base title={t.notFound.title}>
+  <h1>{t.notFound.h1}</h1>
+  <p><a href="/">{t.notFound.back}</a> {t.notFound.or} <a href="/hledat/">{t.notFound.search}</a>.</p>
 </Base>

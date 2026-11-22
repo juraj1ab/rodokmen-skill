@@ -2,14 +2,15 @@
 import Base from '../layouts/Base.astro';
 import { Content } from '../generated/zajimavosti.md';
 import { lines, linesTitle } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
 ---
-<Base title="Zajímavosti">
-  <h1>Zajímavosti z rodokmenu</h1>
-  <p class="lead">Co nás při hledání nejvíc překvapilo – nejstarší předek, spojené větve, řemesla a osudy.</p>
+<Base title={t.funFactsPage.title}>
+  <h1>{t.funFactsPage.h1}</h1>
+  <p class="lead">{t.funFactsPage.lead}</p>
   <div class="prose"><Content /></div>
 
   <div class="next-step">
-    <p><strong>Ponořte se hlouběji:</strong> projděte si jednotlivé rody, podívejte se na mapě, kde předci žili, nebo najděte kohokoli ve vějíři všech předků.</p>
-    <p><a class="btn" href="/rody/">{linesTitle(Object.keys(lines).length)} →</a> <a class="btn" href="/mapa/">Mapa →</a> <a class="btn" href="/vejir/">Vějíř předků →</a></p>
+    <p><strong>{t.funFactsPage.nextBold}</strong> {t.funFactsPage.nextText}</p>
+    <p><a class="btn" href="/rody/">{linesTitle(Object.keys(lines).length)} →</a> <a class="btn" href="/mapa/">{t.funFactsPage.mapBtn}</a> <a class="btn" href="/vejir/">{t.funFactsPage.fanBtn}</a></p>
   </div>
 </Base>

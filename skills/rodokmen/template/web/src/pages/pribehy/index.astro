@@ -1,23 +1,44 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { docs, config, lineByK, href } from '../../lib/data.js';
+import { docs, config, lines, lineByK, href } from '../../lib/data.js';
+import { t } from '../../lib/i18n.js';
 import { Content, frontmatter } from '../../generated/pribeh.md';
 const line = lineByK[config.pribeh?.rod ?? 8];
+const studies = config.studie ?? [];
 ---
 <Base title={frontmatter.title}>
-  <p class="crumbs">{line && <><a href={href.line(line.slug)}>rod {line.name}</a> · </>}<a href="/zajimavosti/">další zajímavosti</a></p>
+  <p class="crumbs">{line && <><a href={href.line(line.slug)}>{t.stories.linePrefix} {line.name}</a> · </>}<a href="/zajimavosti/">{t.stories.moreFunFacts}</a></p>
   <h1>{frontmatter.title}</h1>
   {frontmatter.lead && <p class="lead">{frontmatter.lead}</p>}
   <div class="prose"><Content /></div>
 
+  {studies.length > 0 && (
+    <>
+      <h2>{t.stories.studiesHeading}</h2>
+      <p class="small muted">{t.stories.studiesLead}</p>
+      <div class="grid2" style="margin-bottom: 2rem;">
+        {studies.map((s) => {
+          const sLine = s.rod ? lines[s.rod] : null;
+          return (
+            <a class={`card ${sLine ? 'line-card ' : ''}card-link`} style={sLine ? `--c:${sLine.color}` : undefined} href={`/${s.slug}/`}>
+              <h3>{s.nadpis}</h3>
+              {s.text && <p class="small muted">{s.text}</p>}
+              <p class="small" style="margin-bottom:0">{t.index.readStudy}</p>
+            </a>
+          );
+        })}
+      </div>
+    </>
+  )}
+
   <div class="next-step">
-    <p><strong>Chcete víc?</strong> Další objevy z rodokmenu najdete v zajímavostech.</p>
-    <a class="btn" href="/zajimavosti/">Zajímavosti z rodokmenu →</a>
+    <p><strong>{t.stories.wantMore}</strong> {t.stories.wantMoreText}</p>
+    <a class="btn" href="/zajimavosti/">{t.stories.funFactsBtn}</a>
   </div>
 
   {docs.length > 0 && (
     <>
-      <h2>Rodinné dokumenty a fotografie</h2>
+      <h2>{t.stories.docsHeading}</h2>
       <div class="docs">
         {docs.map((d) => (
           <figure><a href={`/img/${d.img}.jpg`} target="_blank" rel="noopener"><img src={`/img/${d.img}.jpg`} alt={d.caption} loading="lazy" /></a><figcaption>{d.caption}</figcaption></figure>

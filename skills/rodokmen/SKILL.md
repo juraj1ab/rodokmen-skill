@@ -180,6 +180,11 @@ Podrobně `reference/pribehy.md`. Tohle je to, co rodina na webu čte nejradši,
   Koncept napiš **do chatu** ke schválení, pak `data/pribeh.md` a v `web.json` menu, tlačítko a úvod.
   Je hlavní věcí na úvodní stránce webu.
 
+- **Samostatné výzkumné stránky (studie)** (např. původ příjmení nebo detailní analýza větve/obce): text zapiš do `data/<nazev>.md`
+  a přidej záznam do `data/web.json` pod `"studie"` (`slug`, `soubor`, `nadpis`, `text`, volitelně `rod`). Nikdy nevytvářej
+  samostatný `.astro` soubor ani neupravuj `export_web.py` – šablona stránku vygeneruje přes `[slug].astro` a automaticky
+  ji zobrazí na úvodní stránce, v `/pribehy/` i na stránce příslušného rodu (takže nikdy nevznikne osirelá stránka bez odkazu).
+
 ## Fáze 4 – Web
 Podrobně `reference/web.md`. Ve zkratce:
 1. `cd web && npm install` (jednou), pak `npm run nahled` → http://localhost:4321 – ukaž uživateli. V cloudovém prostředí
@@ -263,4 +268,5 @@ Nedělej to pořád. Postup:
 | `zapis.py <soubor> <klíč> <vstup.json> [--sloucit]` | přidá / změní položku v `zaznamy`, `svazky`, `prepisy`… beze změny formátu |
 | `kontrola.py` | kontrola dat; hlásí i citlivé údaje na webu a kdy psát příběh |
 | `export_web.py` | data → web (volá ho `npm run data`) |
+| `export_offline_html.py [cesta]` | export webu do čistého offline HTML balíka (relatívne linky, priame otvorenie bez servera, ZIP) |
 | `fan_chart.py vystupy/` | vějíř předků jako plakát k tisku |

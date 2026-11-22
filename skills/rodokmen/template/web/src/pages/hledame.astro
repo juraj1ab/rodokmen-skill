@@ -1,21 +1,32 @@
 ---
 import Base from '../layouts/Base.astro';
 import { issues, config } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
 import { Content as Dotazy } from '../generated/dotazy.md';
 ---
-<Base title="Co hledáme">
-  <h1>Co ještě hledáme</h1>
-  <p class="lead">Otevřené otázky a hypotézy. Pokud o něčem z toho víte z rodinné paměti nebo dokumentů, ozvěte se{config.kontakt?.email ? <> na <a href={`mailto:${config.kontakt.email}`}>{config.kontakt.email}</a></> : ' autorovi rodokmenu'}.</p>
-  <h2>Otevřené otázky</h2>
+<Base title={t.issuesPage.title}>
+  <h1>{t.issuesPage.h1}</h1>
+  <p class="lead">{t.issuesPage.leadBefore}{config.kontakt?.email ? <> na <a href={`mailto:${config.kontakt.email}`}>{config.kontakt.email}</a></> : ` ${t.issuesPage.authorFallback}`}.</p>
+  <h2>{t.issuesPage.issuesHeading}</h2>
   <div class="grid2">
-    {issues.filter((i) => !i.text.startsWith('Vyřešeno')).map((i) => (
-      <div class="card">
-        <h3>{i.title}</h3>
-        <p class="small"><span class={`chip ${i.text.startsWith('Vyřešeno') ? 'st-doc' : i.text.startsWith('Hypotéza') ? 'st-prob' : 'st-unk'}`}>{i.text.split(':')[0]}</span> {i.text.slice(i.text.indexOf(':') + 1)}</p>
-      </div>
-    ))}
+    {issues.filter((i) => !i.text.startsWith('Vyřešeno') && !i.text.startsWith('Vyriešené')).map((i) => {
+      const colonIdx = i.text.indexOf(':');
+      const tag = colonIdx > -1 ? i.text.slice(0, colonIdx) : '';
+      const rest = colonIdx > -1 ? i.text.slice(colonIdx + 1) : i.text;
+      const isProb = tag.startsWith('Hypotéza') || tag.startsWith('Plán');
+      const isDoc = tag.startsWith('Vyřešeno') || tag.startsWith('Vyriešené');
+      const chipClass = isDoc ? 'st-doc' : isProb ? 'st-prob' : 'st-unk';
+      return (
+        <div class="card">
+          <h3>{i.title}</h3>
+          <p class="small">
+            {tag && <span class={`chip ${chipClass}`}>{tag}</span>} {rest}
+          </p>
+        </div>
+      );
+    })}
   </div>
-  <h2>Prameny mimo online matriky</h2>
+  <h2>{t.issuesPage.sourcesHeading}</h2>
   <div class="prose small"><Dotazy /></div>
-  <p><a href="/denik/">Výzkumný deník – všechna hledání včetně neúspěšných →</a></p>
+  <p style="margin-top: 2rem;"><a href="/denik/">{t.issuesPage.diaryLink}</a></p>
 </Base>

@@ -2,22 +2,23 @@
 import Base from '../layouts/Base.astro';
 import fan from '../generated/fan.svg?raw';
 import { people } from '../lib/data.js';
-const names = [...new Set(Object.values(people).filter((p) => p.k > 1).map((p) => p.name))].sort((a, b) => a.localeCompare(b, 'cs'));
+import { t, lang } from '../lib/i18n.js';
+const names = [...new Set(Object.values(people).filter((p) => p.k > 1).map((p) => p.name))].sort((a, b) => a.localeCompare(b, lang));
 ---
-<Base title="Vějíř předků" full>
+<Base title={t.fanPage.title} full>
   <div class="fan-bar">
-    <strong>Vějíř předků</strong>
+    <strong>{t.fanPage.title}</strong>
     <form class="fan-search" autocomplete="off">
-      <input list="fan-names" placeholder="Najít předka…" aria-label="Najít předka" />
+      <input list="fan-names" placeholder={t.fanPage.placeholder} aria-label={t.fanPage.ariaSearch} />
       <datalist id="fan-names">{names.map((n) => <option value={n} />)}</datalist>
-      <button type="submit">Najít</button>
+      <button type="submit">{t.fanPage.submit}</button>
     </form>
     <span class="fan-btns">
-      <button type="button" data-z="1.5" aria-label="Přiblížit">+</button>
-      <button type="button" data-z="0.667" aria-label="Oddálit">−</button>
-      <button type="button" data-z="0">Celý</button>
+      <button type="button" data-z="1.5" aria-label={t.fanPage.zoomIn}>+</button>
+      <button type="button" data-z="0.667" aria-label={t.fanPage.zoomOut}>−</button>
+      <button type="button" data-z="0">{t.fanPage.reset}</button>
     </span>
-    <span class="small muted fan-hint">Kolečkem myši přibližujte, tažením posouvejte, klepnutím na jméno otevřete stránku.</span>
+    <span class="small muted fan-hint">{t.fanPage.hint}</span>
   </div>
   <div class="fan-stage" set:html={fan} />
 

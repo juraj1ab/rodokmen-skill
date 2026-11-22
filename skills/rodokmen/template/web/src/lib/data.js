@@ -2,8 +2,11 @@
 import site from '../data/site.json';
 
 export const { people, families, lines, stats, issues, hypotheses, docs, config } = site;
-/** Počet rodů slovem pro nadpisy („Osm rodů“). */
-export const linesTitle = (n) => (['Žádný rod', 'Jeden rod', 'Dva rody', 'Tři rody', 'Čtyři rody', 'Pět rodů', 'Šest rodů', 'Sedm rodů', 'Osm rodů'][n] ?? `${n} rodů`);
+const isSk = config?.jazyk === 'sk';
+/** Počet rodů slovem pro nadpisy („Osm rodů“ / „Osem rodov“). */
+export const linesTitle = (n) => isSk
+  ? (['Žiadny rod', 'Jeden rod', 'Dva rody', 'Tri rody', 'Štyri rody', 'Päť rodov', 'Šesť rodov', 'Sedem rodov', 'Osem rodov'][n] ?? `${n} rodov`)
+  : (['Žádný rod', 'Jeden rod', 'Dva rody', 'Tři rody', 'Čtyři rody', 'Pět rodů', 'Šest rodů', 'Sedm rodů', 'Osm rodů'][n] ?? `${n} rodů`);
 export const root = people[site.root];
 export const records = Object.fromEntries(site.records.map((r) => [r.key, r]));
 export const recordList = site.records;
@@ -28,7 +31,8 @@ export function dateKey(date) {
   return Number(y) * 10000 + Number(m) * 100 + Number(d);
 }
 
-export const genName = (g) =>
-  ['výchozí osoba', 'rodiče', 'prarodiče', 'praprarodiče'][g] ?? `${g}. generace (${'pra'.repeat(g - 1)}rodiče)`;
+export const genName = (g) => isSk
+  ? (['východisková osoba', 'rodičia', 'starí rodičia', 'prastarí rodičia'][g] ?? `${g}. generácia (${'pra'.repeat(g - 1)}rodičia)`)
+  : (['výchozí osoba', 'rodiče', 'prarodiče', 'praprarodiče'][g] ?? `${g}. generace (${'pra'.repeat(g - 1)}rodiče)`);
 
 export const statusClass = (st) => ({ doc: 'st-doc', prob: 'st-prob', fam: 'st-fam', mh: 'st-mh' })[st] ?? 'st-unk';

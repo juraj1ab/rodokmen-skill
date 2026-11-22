@@ -62,6 +62,52 @@ def years(y):
     return f"{approx}{ys[0]}–{second}"
 
 
+def parse_birth(p):
+    if not p:
+        return None
+    for fact in p.get("f", []):
+        if not fact.startswith("*"):
+            continue
+        is_approx = bool(re.search(r"\b(cca|asi|okolo)\b|≈", fact))
+        m = re.search(r"\b(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})\b", fact)
+        if m:
+            return int(m.group(3)), int(m.group(2)), int(m.group(1)), is_approx
+        m_my = re.search(r"\b(0?[1-9]|1[0-2])\s*/\s*(\d{4})\b", fact)
+        if m_my:
+            return int(m_my.group(2)), int(m_my.group(1)), None, is_approx
+        m_y = re.search(r"\b(1[6-9]\d\d|20\d\d)\b", fact)
+        if m_y:
+            is_approx = is_approx or bool(re.search(r"/", fact))
+            return int(m_y.group(1)), None, None, is_approx
+    y = (p.get("y") or "").strip()
+    if y and not y.startswith(("?", "†")) and not re.match(r"po\b", y):
+        head, dash, _ = y.partition("–")
+        target = head if dash else y
+        target_ys = re.findall(r"\b(1[6-9]\d\d|20\d\d)\b", target)
+        if target_ys:
+            is_approx = bool(re.search(r"\b(cca|asi|okolo)\b|≈|/", target))
+            return int(target_ys[0]), None, None, is_approx
+    return None
+
+
+def calc_age(parent, child):
+    pb = parse_birth(parent)
+    cb = parse_birth(child)
+    if not pb or not cb:
+        return None
+    py, pm, pd, pa = pb
+    cy, cm, cd, ca = cb
+    approx = pa or ca
+    if pm and pd and cm and cd:
+        age = cy - py - (1 if (cm, cd) < (pm, pd) else 0)
+    else:
+        age = cy - py
+    if age <= 10 or age > 100:
+        return None
+    prefix = "≈" if approx else ""
+    return f"{prefix}{age} r."
+
+
 def pt(r, a):
     t = math.radians(a)
     return CX + r * math.sin(t), CY - r * math.cos(t)
@@ -117,6 +163,10 @@ for k in slots:
     if not p:
         continue
     name, yrs, st = p["n"], years(p.get("y")), p.get("st")
+    if k > 1 and (k // 2) in P:
+        age = calc_age(p, P[k // 2])
+        if age:
+            name = f"{name} ({age})"
     if k in HREFS:
         shape = (f'<circle cx="{CX}" cy="{CY}" r="{r1}"/>' if g == 0 else f'<path d="{sector(r0, r1, a0, a1)}"/>')
         links.append(f'<a href="{HREFS[k]}"><title>{html.escape(name)} {html.escape(yrs)}</title>{shape}</a>')
@@ -207,7 +257,7 @@ legend.append(f'<rect x="{lx}" y="{sy - 34}" width="44" height="44" rx="6" fill=
               f'<text x="{lx + 584}" y="{sy}" font-size="36" font-style="italic" fill="#3B2E22">pravděpodobné</text>'
               f'<rect x="{lx + 1000}" y="{sy - 34}" width="44" height="44" rx="6" fill="{EMPTY}"/>'
               f'<text x="{lx + 1064}" y="{sy}" font-size="36" fill="#3B2E22">zatím neznámé</text>'
-              f'<text x="{lx + 1500}" y="{sy}" font-size="36" fill="#5E5245">uprostřed {html.escape(P[1]["n"].split()[0])}, každý prstenec = o generaci starší; vlevo otcova, vpravo matčina strana</text>')
+              f'<text x="{lx + 1500}" y="{sy}" font-size="36" fill="#5E5245">uprostřed {html.escape(P[1]["n"].split()[0])}, každý prstenec = o generaci starší (v závorce věk při narození potomka); vlevo otcova, vpravo matčina strana</text>')
 footer = (f'<text x="{W / 2}" y="{H - 50}" text-anchor="middle" font-size="36" fill="#7A6B5B">'
           f'{html.escape(WEBCFG.get("zapati", ""))}</text>')
 

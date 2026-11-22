@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { stats, lines, href, config, linesTitle } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
 import fan from '../generated/fan.svg?raw';
 import MobileTree from '../components/MobileTree.astro';
 import FamilyMap from '../components/FamilyMap.astro';
@@ -9,6 +10,7 @@ import { frontmatter as pribeh } from '../generated/pribeh.md';
 const lineList = Object.values(lines).sort((a, b) => a.k - b.k);
 const uvod = config.uvod ?? {};
 const cards = config.zajimavosti_na_uvodu ?? [];
+const studies = config.studie ?? [];
 ---
 <Base title="" wide>
   <h1>{config.nazev || 'Rodokmen'}</h1>
@@ -17,12 +19,18 @@ const cards = config.zajimavosti_na_uvodu ?? [];
     <section class="teaser">
       <div>
         {uvod.nadpis && <h2>{uvod.nadpis}</h2>}
-        {(uvod.odstavce ?? []).map((t) => <p>{t}</p>)}
-        {config.maPribeh && <a class="btn" href="/pribehy/">{config.pribeh?.tlacitko || `Přečíst: ${pribeh.title}`} →</a>}
+        {(uvod.odstavce ?? []).map((p) => <p>{p}</p>)}
+        {config.maPribeh && <a class="btn" href="/pribehy/">{config.pribeh?.tlacitko || `${t.index.readPrefix}: ${pribeh.title}`} →</a>}
       </div>
-      {uvod.foto && (
+      {uvod.video ? (
+        <a href={config.maPribeh ? '/pribehy/' : (uvod.video.endsWith('.mp4') ? `/img/${uvod.video}` : `/img/${uvod.video}.mp4`)}>
+          <video autoplay loop muted playsinline poster={uvod.foto ? `/img/${uvod.foto}.jpg` : undefined} title={uvod.foto_popis || ''}>
+            <source src={uvod.video.endsWith('.mp4') ? `/img/${uvod.video}` : `/img/${uvod.video}.mp4`} type="video/mp4" />
+          </video>
+        </a>
+      ) : uvod.foto ? (
         <a href={config.maPribeh ? '/pribehy/' : `/img/${uvod.foto}.jpg`}><img src={`/img/${uvod.foto}.jpg`} alt={uvod.foto_popis || ''} /></a>
-      )}
+      ) : null}
     </section>
   )}
 
@@ -31,35 +39,54 @@ const cards = config.zajimavosti_na_uvodu ?? [];
       <div>
         <h2>{pribeh.title}</h2>
         {pribeh.lead && <p>{pribeh.lead}</p>}
-        <a class="btn" href="/pribehy/">{config.pribeh?.tlacitko || 'Přečíst příběh'} →</a>
+        <a class="btn" href="/pribehy/">{config.pribeh?.tlacitko || t.index.readStory} →</a>
       </div>
     </section>
   )}
 
   <div class="stats">
-    <div><strong>{stats.ancestors}</strong>známých předků</div>
-    <div><strong>{stats.documented}</strong>doloženo matrikou</div>
-    <div><strong>{stats.generations}</strong>generací</div>
-    <div><strong>{stats.records}</strong>matričních zápisů</div>
+    <div><strong>{stats.ancestors}</strong>{t.index.statsAncestors}</div>
+    <div><strong>{stats.documented}</strong>{t.index.statsDocumented}</div>
+    <div><strong>{stats.generations}</strong>{t.index.statsGenerations}</div>
+    <div><strong>{stats.records}</strong>{t.index.statsRecords}</div>
   </div>
 
   {cards.length > 0 && (
     <>
-      <h2>Zajímavosti</h2>
+      <h2>{t.index.funFacts}</h2>
       <div class="grid2">
         {cards.map((c) => (
-          <a class="card card-link" href="/zajimavosti/"><h3>{c.nadpis}</h3><p class="small muted">{c.text}</p></a>
+          <a class="card card-link" href={c.url || '/zajimavosti/'}><h3>{c.nadpis}</h3><p class="small muted">{c.text}</p></a>
         ))}
       </div>
-      <p><a href="/zajimavosti/">Všechny zajímavosti →</a></p>
+      <p><a href="/zajimavosti/">{t.index.allFunFacts}</a></p>
+    </>
+  )}
+
+  {studies.length > 0 && (
+    <>
+      <h2>{t.index.studies}</h2>
+      <p class="small muted">{t.index.studiesLead}</p>
+      <div class="grid2">
+        {studies.map((s) => {
+          const line = s.rod ? lines[s.rod] : null;
+          return (
+            <a class={`card ${line ? 'line-card ' : ''}card-link`} style={line ? `--c:${line.color}` : undefined} href={`/${s.slug}/`}>
+              <h3>{s.nadpis}</h3>
+              {s.text && <p class="small muted">{s.text}</p>}
+              <p class="small" style="margin-bottom:0">{t.index.readStudy}</p>
+            </a>
+          );
+        })}
+      </div>
     </>
   )}
 
   {site.places.length > 0 && (
     <>
-      <h2>Kde žili naši předci</h2>
+      <h2>{t.index.mapTitle}</h2>
       <FamilyMap height="420px" compact />
-      <p><a href="/mapa/">Celá mapa se jmény a filtrem rodů →</a></p>
+      <p><a href="/mapa/">{t.index.mapLink}</a></p>
     </>
   )}
 
@@ -77,10 +104,10 @@ const cards = config.zajimavosti_na_uvodu ?? [];
     </>
   )}
 
-  <h2>Rodokmen</h2>
+  <h2>{t.index.treeTitle}</h2>
   <div class="only-mobile">
     <MobileTree k={1} />
   </div>
-  <div class="fan-preview only-desktop"><a class="cover" href="/vejir/" aria-label="Otevřít vějíř předků přes celou obrazovku"></a><Fragment set:html={fan} /></div>
-  <p><a class="btn" href="/vejir/">Otevřít vějíř předků přes celou obrazovku →</a> <a href="/predci/" style="margin-left:1rem">nebo seznam všech předků</a></p>
+  <div class="fan-preview only-desktop"><a class="cover" href="/vejir/" aria-label={t.index.fanAria}></a><Fragment set:html={fan} /></div>
+  <p><a class="btn" href="/vejir/">{t.index.fanBtn}</a> <a href="/predci/" style="margin-left:1rem">{t.index.allAncestorsLink}</a></p>
 </Base>

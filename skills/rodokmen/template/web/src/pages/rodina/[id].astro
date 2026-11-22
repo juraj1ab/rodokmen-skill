@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import PersonLink from '../../components/PersonLink.astro';
 import Record from '../../components/Record.astro';
 import { people, families, lineByK, records, href } from '../../lib/data.js';
+import { t } from '../../lib/i18n.js';
 
 export function getStaticPaths() {
   return Object.keys(families).map((id) => ({ params: { id } }));
@@ -12,46 +13,46 @@ const father = f.father ? people[f.father] : null;
 const mother = f.mother ? people[f.mother] : null;
 const children = f.children.map((s) => people[s]);
 const line = f.line ? lineByK[f.line] : null;
-const title = [father?.name ?? (f.fatherUnknown ? 'otec neuveden' : 'neznámý otec'), mother?.name ?? 'neznámá matka'].join(' a ');
+const title = [father?.name ?? (f.fatherUnknown ? t.familyPage.unknownFather : t.familyPage.missingFather), mother?.name ?? t.familyPage.unknownMother].join(' a ');
 ---
-<Base title={`Rodina: ${title}`}>
-  <p class="crumbs">Rodina{line && <> · <a href={href.line(line.slug)}>rod {line.name}</a></>}</p>
+<Base title={`${t.familyPage.titlePrefix}: ${title}`}>
+  <p class="crumbs">{t.familyPage.crumbs}{line && <> · <a href={href.line(line.slug)}>{t.familyPage.linePrefix} {line.name}</a></>}</p>
   <h1>{title}</h1>
 
   <div class="grid2">
     {[father, mother].map((p, i) => (
       <div class="card">
-        <h3>{i === 0 ? 'Otec' : 'Matka'}</h3>
+        <h3>{i === 0 ? t.familyPage.father : t.familyPage.mother}</h3>
         {p ? (
           <>
             <p><PersonLink slug={p.slug} /><br /><span class="small muted">{p.rel}</span></p>
             {p.facts.length > 0 && <ul class="facts small">{p.facts.map((x) => <li>{x}</li>)}</ul>}
-            {p.family && <p class="small"><a href={href.family(p.family)}>Rodina, ze které pochází →</a></p>}
+            {p.family && <p class="small"><a href={href.family(p.family)}>{t.familyPage.originFamily}</a></p>}
           </>
-        ) : <p class="muted">{i === 0 && f.fatherUnknown ? 'V zápisech neuveden – dítě se narodilo jako nemanželské.' : 'Zatím neznámá osoba.'}</p>}
+        ) : <p class="muted">{i === 0 && f.fatherUnknown ? t.familyPage.illegNote : t.familyPage.unknownPerson}</p>}
       </div>
     ))}
   </div>
 
   {f.marriage.length > 0 && (
     <>
-      <h2>Sňatek</h2>
+      <h2>{t.familyPage.marriage}</h2>
       <ul class="facts">{f.marriage.map((m) => <li>{m.replace(/^×\s*/, '')}</li>)}</ul>
     </>
   )}
 
-  <h2>Děti</h2>
+  <h2>{t.familyPage.children}</h2>
   <ul class="facts">
-    {children.map((c) => <li><PersonLink slug={c.slug} /> – přímý předek ({c.rel})</li>)}
+    {children.map((c) => <li><PersonLink slug={c.slug} /> – {t.familyPage.directAncestor} ({c.rel})</li>)}
   </ul>
   {f.side.length > 0 && (
     <div class="grid2">{f.side.map((s) => <div class="card"><h3>{s.name}</h3><p class="small">{s.text}</p></div>)}</div>
   )}
-  <p class="small muted">Další sourozence zatím systematicky nehledáme – tady jsou jen ti, na které jsme narazili.</p>
+  <p class="small muted">{t.familyPage.siblingsNote}</p>
 
   {f.records.length > 0 && (
     <>
-      <h2>Zápisy</h2>
+      <h2>{t.familyPage.records}</h2>
       <div class="recs">{f.records.filter((r) => records[r]).map((r) => <Record id={r} />)}</div>
     </>
   )}

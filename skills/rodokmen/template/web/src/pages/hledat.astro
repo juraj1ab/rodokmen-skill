@@ -1,18 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import { t } from '../lib/i18n.js';
 ---
-<Base title="Hledat">
-  <h1>Hledat</h1>
-  <p class="lead">Jména, místa, čísla domů, povolání – hledá se ve všech stránkách webu.</p>
+<Base title={t.searchPage.title}>
+  <h1>{t.searchPage.title}</h1>
+  <p class="lead">{t.searchPage.lead}</p>
   <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-  <div id="search"></div>
+  <div id="search" data-placeholder={t.searchPage.placeholder} data-zero={t.searchPage.zeroResults} data-notbuilt={t.searchPage.notBuilt}></div>
   <script is:inline src="/pagefind/pagefind-ui.js"></script>
   <script is:inline>
     window.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('search');
       if (window.PagefindUI) {
-        new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: 'Hledat jméno, místo…', zero_results: 'Nic nenalezeno pro [SEARCH_TERM]' } });
+        new PagefindUI({ element: '#search', showSubResults: true, translations: { placeholder: el.dataset.placeholder, zero_results: el.dataset.zero } });
       } else {
-        document.getElementById('search').textContent = 'Vyhledávání je dostupné až po sestavení webu (npm run build).';
+        el.textContent = el.dataset.notbuilt;
       }
     });
   </script>

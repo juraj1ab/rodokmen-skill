@@ -20,6 +20,7 @@ Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (
 ## `data/web.json`
 ```json
 {
+ "jazyk": "cs",
  "nazev": "Rodokmen Novákových",
  "popis": "Popis pro vyhledávače a sdílení (web je ale noindex).",
  "zapati": "Dohledáno v digitalizovaných matrikách SOA Zámrsk (portál ARON)",
@@ -27,9 +28,15 @@ Náhled spouštěj na pozadí a uživateli pošli odkaz. Vzhled si ověř sám (
  "prihlaseni": {"uvod": "Tenhle web je jen pro rodinu.", "otazka": "Jak se jmenoval pes u babičky v Holicích?", "odpoved": "Alík"},
  "uvod": {"nadpis": "Lákavý nadpis", "odstavce": ["2–3 věty, které chytí"], "foto": "klic_obrazku_ve_vyrezech", "foto_popis": "…"},
  "pribeh": {"menu": "Příběh Nováků", "rod": 8, "tlacitko": "Přečíst příběh Nováků"},
- "zajimavosti_na_uvodu": [{"nadpis": "Nejstarší předek", "text": "Kovář Jan, asi 1825."}]
+ "zajimavosti_na_uvodu": [{"nadpis": "Nejstarší předek", "text": "Kovář Jan, asi 1825.", "url": "/zajimavosti/"}],
+ "studie": [
+  {"slug": "puvod-jmena", "soubor": "puvod_jmena.md", "nadpis": "Původ příjmení", "text": "Etymologie a první zmínky.", "rod": "novakovi"}
+ ]
 }
 ```
+- `jazyk`: `"cs"` (výchozí) nebo `"sk"` (přepne celé uživatelské rozhraní webu a exportované štítky do slovenštiny).
+- `studie`: seznam samostatných výzkumných stránek (`slug` → URL `/<slug>/`, `soubor` → `data/<soubor>`, `nadpis`, `text`, volitelně `rod` = slug rodu). `export_web.py` je automaticky vyexportuje, zkontroluje v nich odkazy a šablona je zobrazí na úvodní stránce, v `/pribehy/` i na stránce daného rodu.
+- `zajimavosti_na_uvodu`: volitelné `"url"` přesměruje kartu místo `/zajimavosti/` na konkrétní stránku (např. na studii).
 - `kontakt.jmeno` je ve 3. pádě („Napište Petrovi na …“).
 - **Přihlášení:** otázka, na kterou zná odpověď jen rodina (ne snadno dohledatelná na sociálních sítích).
   Odpověď se porovnává bez diakritiky a velkých písmen. Na serveru i v cookie prohlížeče je jen její otisk (SHA-256),

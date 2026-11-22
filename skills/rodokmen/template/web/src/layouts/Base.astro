@@ -1,18 +1,19 @@
 ---
 import '../styles/global.css';
 import { config } from '../lib/data.js';
+import { t, lang } from '../lib/i18n.js';
 const siteName = config.nazev || 'Rodokmen';
 const { title, description = config.popis || siteName, wide = false, wider = false, full = false } = Astro.props;
 const path = Astro.url.pathname;
 const groups = [
-  [['/', 'Úvod'], ...(config.maPribeh ? [['/pribehy/', config.pribeh?.menu || 'Příběh rodu']] : []), ['/zajimavosti/', 'Zajímavosti']],
-  [['/rody/', 'Rody'], ['/mapa/', 'Mapa'], ['/vejir/', 'Vějíř'], ['/predci/', 'Předci'], ['/zapisy/', 'Zápisy'], ['/hledame/', 'Co hledáme']],
-  [['/hledat/', 'Hledat']],
+  [['/', t.nav.home], ...(config.maPribeh ? [['/pribehy/', config.pribeh?.menu || t.nav.storyDefault]] : []), ['/zajimavosti/', t.nav.funFacts]],
+  [['/rody/', t.nav.lines], ['/mapa/', t.nav.map], ['/vejir/', t.nav.fan], ['/predci/', t.nav.ancestors], ['/zapisy/', t.nav.records], ['/hledame/', t.nav.issues]],
+  [['/hledat/', t.nav.search]],
 ];
 const current = (url) => ((url === '/' ? path === '/' : path.startsWith(url)) ? 'page' : undefined);
 ---
 <!doctype html>
-<html lang="cs">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -44,7 +45,7 @@ const current = (url) => ((url === '/' ? path === '/' : path.startsWith(url)) ? 
       <slot />
     </main>
     {!full && <footer class="site-footer">
-      {config.zapati || 'Dohledáno v digitalizovaných matrikách'} · rodinný web, neveřejný
+      {config.zapati || t.footerDefault} · {t.footerSuffix}
     </footer>}
   </body>
 </html>

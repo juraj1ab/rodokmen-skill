@@ -2,17 +2,18 @@
 import Base from '../layouts/Base.astro';
 import PersonLink from '../components/PersonLink.astro';
 import { people, lineByK, genName, statusClass } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
 const list = Object.values(people).sort((a, b) => a.k - b.k);
 const gens = [...new Set(list.map((p) => p.gen))];
 ---
-<Base title="Předci">
-  <h1>Všichni předci</h1>
-  <p class="lead">Po generacích, v pořadí podle Kekulého čísla (otec má číslo 2n, matka 2n + 1). U každé generace vidíte, kolik předků z možného počtu už známe – ty ostatní teprve hledáme. Podívejte se, <a href="/hledame/">co ještě hledáme</a>, třeba víte víc.</p>
+<Base title={t.ancestorsPage.title}>
+  <h1>{t.ancestorsPage.h1}</h1>
+  <p class="lead">{t.ancestorsPage.leadBefore} <a href="/hledame/">{t.ancestorsPage.leadLink}</a>{t.ancestorsPage.leadAfter}</p>
   {gens.map((g) => (
     <>
-      <h2>{genName(g)} <span class="muted small">({list.filter((p) => p.gen === g).length} z {2 ** g})</span></h2>
+      <h2>{genName(g)} <span class="muted small">({list.filter((p) => p.gen === g).length} {t.ancestorsPage.of} {2 ** g})</span></h2>
       <div class="table-box"><table>
-        <thead><tr><th>#</th><th>Jméno</th><th>Vztah</th><th>Rod</th><th>Stav</th></tr></thead>
+        <thead><tr><th>#</th><th>{t.ancestorsPage.thName}</th><th>{t.ancestorsPage.thRel}</th><th>{t.ancestorsPage.thLine}</th><th>{t.ancestorsPage.thStatus}</th></tr></thead>
         <tbody>
           {list.filter((p) => p.gen === g).map((p) => (
             <tr>

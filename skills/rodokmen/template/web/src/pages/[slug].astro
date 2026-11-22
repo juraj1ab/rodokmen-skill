@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+import { config, lines, href } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
+
+const mdModules = import.meta.glob('../generated/*.md', { eager: true });
+
+export function getStaticPaths() {
+  const studies = config.studie ?? [];
+  return studies
+    .filter((s) => s.slug && s.soubor)
+    .map((s) => ({ params: { slug: s.slug }, props: { study: s } }));
+}
+
+const { study } = Astro.props;
+const mod = mdModules[`../generated/${study.soubor}`];
+const Content = mod?.Content;
+const fm = mod?.frontmatter ?? {};
+const title = fm.title || study.nadpis || study.slug;
+const lead = fm.lead || study.text || '';
+const line = study.rod ? lines[study.rod] : null;
+---
+<Base title={title} wide>
+  <p class="crumbs">
+    <a href="/">{t.study.home}</a>
+    {config.maPribeh && <> · <a href="/pribehy/">{t.study.stories}</a></>}
+    {line && <> · <a href={href.line(line.slug)}>{t.study.linePrefix} {line.name}</a></>}
+  </p>
+  {Content ? (
+    <>
+      {!fm.title && <h1>{title}</h1>}
+      {lead && !fm.lead && <p class="lead">{lead}</p>}
+      <div class="prose"><Content /></div>
+    </>
+  ) : (
+    <>
+      <h1>{title}</h1>
+      <p class="lead">{lead}</p>
+    </>
+  )}
+
+  <div class="next-step" style="margin-top: 3rem;">
+    <p><strong>{t.study.nextLead}</strong> {t.study.nextText}</p>
+    <p>
+      {line && <a class="btn" href={href.line(line.slug)}>{t.study.linePrefix} {line.name} →</a>}
+      {config.maPribeh && <a class="btn" href="/pribehy/">{t.study.allStories}</a>}
+      <a class="btn" href="/rody/">{t.study.allLines}</a>
+      <a class="btn" href="/zapisy/">{t.study.allRecords}</a>
+    </p>
+  </div>
+</Base>

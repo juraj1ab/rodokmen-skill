@@ -2,18 +2,19 @@
 import Base from '../layouts/Base.astro';
 import PersonLink from '../components/PersonLink.astro';
 import { recordList, dateKey, href } from '../lib/data.js';
+import { t } from '../lib/i18n.js';
 const list = [...recordList].sort((a, b) => dateKey(a.date) - dateKey(b.date));
 const kinds = [...new Set(list.map((r) => r.kindName))];
 ---
-<Base title="Zápisy z matrik">
-  <h1>Zápisy z matrik</h1>
-  <p class="lead">Všech {list.length} zápisů, na kterých rodokmen stojí – chronologicky. U každého je výřez snímku s vyznačeným místem, plné rozlišení a odkaz do archivu. Co v matrikách zatím chybí nebo si odporuje, najdete v přehledu <a href="/hledame/">co ještě hledáme</a>.</p>
+<Base title={t.recordsPage.title}>
+  <h1>{t.recordsPage.h1}</h1>
+  <p class="lead">{t.recordsPage.leadBefore} {list.length} {t.recordsPage.leadMiddle} <a href="/hledame/">{t.recordsPage.leadLink}</a>.</p>
   <p class="chips">
-    <button class="chip" data-k="" type="button">vše</button>
+    <button class="chip" data-k="" type="button">{t.recordsPage.all}</button>
     {kinds.map((k) => <button class="chip" data-k={k} type="button">{k}</button>)}
   </p>
   <div class="table-box"><table>
-    <thead><tr><th>Datum</th><th>Druh</th><th>Zápis</th><th>Týká se</th></tr></thead>
+    <thead><tr><th>{t.recordsPage.thDate}</th><th>{t.recordsPage.thKind}</th><th>{t.recordsPage.thRecord}</th><th>{t.recordsPage.thPeople}</th></tr></thead>
     <tbody>
       {list.map((r) => (
         <tr data-kind={r.kindName}>
@@ -22,8 +23,8 @@ const kinds = [...new Set(list.map((r) => r.kindName))];
           <td><a href={href.record(r.key)}>{r.title}</a><div class="small muted">{r.volume || r.vdesc}</div>
             {r.orig && (
               <details class="transcript">
-                <summary>Text z matriky a překlad</summary>
-                <div class="tr-grid"><div><h4>Přepis originálu</h4><p class="tr-orig">{r.orig}</p></div><div><h4>Překlad</h4><p class="tr-cs">{r.cs}</p></div></div>
+                <summary>{t.recordsPage.transcriptSummary}</summary>
+                <div class="tr-grid"><div><h4>{t.recordsPage.origHeading}</h4><p class="tr-orig">{r.orig}</p></div><div><h4>{t.recordsPage.transHeading}</h4><p class="tr-cs">{r.cs}</p></div></div>
               </details>
             )}
           </td>

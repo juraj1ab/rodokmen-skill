@@ -22,9 +22,12 @@ ZDROJE = os.path.join(ROOT, "zdroje")      # tytéž výřezy v plném rozlišen
 
 LINE_COLORS = {8: "#EFB45F", 9: "#F09A78", 10: "#E58AA6", 11: "#B99AE0",
                12: "#86B8E8", 13: "#6FCBB9", 14: "#9CD17A", 15: "#D3D46A"}
-STATUS = {"doc": "doloženo matrikou", "prob": "pravděpodobné", "fam": "údaj od rodiny",
-          "mh": "jen z cizího rodokmenu", "unk": "neznámé"}
-KINDS = {"N": "křest / narození", "O": "sňatek", "Z": "úmrtí", "I": "rejstřík", "S": "sčítání lidu", "J": "jiný pramen"}
+STATUS_CS = {"doc": "doloženo matrikou", "prob": "pravděpodobné", "fam": "údaj od rodiny",
+             "mh": "jen z cizího rodokmenu", "unk": "neznámé"}
+STATUS_SK = {"doc": "doložené matrikou", "prob": "pravdepodobné", "fam": "údaj od rodiny",
+             "mh": "len z cudzieho rodokmeňa", "unk": "neznáme"}
+KINDS_CS = {"N": "křest / narození", "O": "sňatek", "Z": "úmrtí", "I": "rejstřík", "S": "sčítání lidu", "J": "jiný pramen"}
+KINDS_SK = {"N": "krst / narodenie", "O": "sobáš", "Z": "úmrtie", "I": "register", "S": "sčítanie ľudu", "J": "iný prameň"}
 
 
 def jload(name, default):
@@ -77,7 +80,7 @@ def norm_answer(text):
     return re.sub(r"[^a-z0-9]", "", t)
 
 
-def years(y):
+def years(y, is_sk=False):
     y = (y or "").strip()
     ys = re.findall(r"\d{4}", y)
     if not ys:
@@ -88,12 +91,13 @@ def years(y):
         # neznámé narození: ukázat jen úmrtí („? – před 1743“ → „† před 1743“, „– po 1921“ → „žil 1921“)
         if re.search(r"\bpo\b", tail or y):
             return "žil " + ys[-1]
-        return "† " + ("před " if "před" in y else "") + ys[-1]
+        before = "pred " if is_sk else "před "
+        return "† " + (before if ("před" in y or "pred" in y) else "") + ys[-1]
     if y.startswith("*"):
         return "* " + ys[0]
     if len(ys) == 1:
         return approx + ys[0]
-    second = "?" if "před" in tail else ("po " if re.search(r"\bpo\b", tail) else "") + \
+    second = "?" if ("před" in tail or "pred" in tail) else ("po " if re.search(r"\bpo\b", tail) else "") + \
         ("≈" if re.search(r"(asi|≈)", tail) else "") + ys[-1]
     return f"{approx}{ys[0]}–{second}"
 
@@ -102,15 +106,17 @@ def gen(k):
     return k.bit_length() - 1
 
 
-def relation(k):
+def relation(k, is_sk=False):
     g, male = gen(k), (k % 2 == 0)
     if g == 0:
-        return "výchozí osoba rodokmenu"
+        return "východisková osoba rodokmeňa" if is_sk else "výchozí osoba rodokmenu"
     if g == 1:
         return "otec" if male else "matka"
-    base = "dědeček" if male else "babička"
+    base = ("dedko" if male else "babka") if is_sk else ("dědeček" if male else "babička")
     if g <= 5:
         return "pra" * (g - 2) + base
+    if is_sk:
+        return f"{'predok' if male else 'predkyňa'} v {g}. generácii ({'pra' * (g - 2)}{base})"
     return f"{'předek' if male else 'předkyně'} v {g}. generaci ({'pra' * (g - 2)}{base})"
 
 
@@ -158,14 +164,18 @@ def login_files(cfg):
     tpl = open(os.path.join(WEB, "prihlaseni.sablona.html"), encoding="utf-8").read()
     if "rodokmen:" not in tpl:   # stará šablona (do 0.4.0) ukládá do cookie odpověď – s novou bránou by se nikdo nepřihlásil
         sys.exit("CHYBA: web/ má starou šablonu přihlášení. Aktualizujte projekt: python3 -I <skill>/tools/novy_projekt.py <složka projektu>")
+    is_sk = cfg.get("jazyk") == "sk"
     contact = cfg.get("kontakt") or {}
     hint = ""
     if contact.get("email"):
-        hint = (f'Neznáte odpověď? Napište {html.escape(contact.get("jmeno", ""))} na '
+        ask = "Nepoznáte odpoveď? Napíšte" if is_sk else "Neznáte odpověď? Napište"
+        hint = (f'{ask} {html.escape(contact.get("jmeno", ""))} na '
                 f'<a href="mailto:{html.escape(contact["email"])}">{html.escape(contact["email"])}</a>.')
-    page = (tpl.replace("{{NAZEV}}", html.escape(cfg.get("nazev", "Rodokmen")))
-               .replace("{{UVOD}}", html.escape(login.get("uvod", "Tenhle web je jen pro rodinu a příbuzné.")))
-               .replace("{{OTAZKA}}", html.escape(login.get("otazka", "Odpověď na rodinnou otázku")))
+    default_intro = "Tento web je len pre rodinu a príbuzných." if is_sk else "Tenhle web je jen pro rodinu a příbuzné."
+    default_q = "Odpoveď na rodinnú otázku" if is_sk else "Odpověď na rodinnou otázku"
+    page = (tpl.replace("{{NAZEV}}", html.escape(cfg.get("nazev", "Rodokmeň" if is_sk else "Rodokmen")))
+               .replace("{{UVOD}}", html.escape(login.get("uvod", default_intro)))
+               .replace("{{OTAZKA}}", html.escape(login.get("otazka", default_q)))
                .replace("{{NAPOVEDA}}", hint))
     write(os.path.join(WEB, "public", "prihlaseni.html"), page)
 
@@ -190,6 +200,9 @@ def main():
         sys.exit("V data/osoby.py chybí výchozí osoba (číslo 1).")
     SAME = ns["SAME"]                       # alias Kekulé → kanonické Kekulé (předek v rodokmenu vícekrát)
     cfg = jload("web.json", {})
+    is_sk = cfg.get("jazyk") == "sk"
+    STATUS = STATUS_SK if is_sk else STATUS_CS
+    KINDS = KINDS_SK if is_sk else KINDS_CS
     login = cfg.get("prihlaseni") or {}
     if "--nasazeni" in sys.argv and not norm_answer(login.get("odpoved", "")) and not login.get("otevreny"):
         sys.exit("CHYBA: v data/web.json není odpověď na přihlašovací otázku – web by byl otevřený komukoli.\n"
@@ -228,9 +241,9 @@ def main():
             path.append(slugs.get(c))
             c //= 2
         people[slugs[k]] = dict(
-            k=k, slug=slugs[k], name=p["n"], y=p.get("y", ""), years=years(p.get("y")), st=p.get("st", "unk"),
+            k=k, slug=slugs[k], name=p["n"], y=p.get("y", ""), years=years(p.get("y"), is_sk), st=p.get("st", "unk"),
             status=STATUS.get(p.get("st"), ""), gen=gen(k), sex="M" if k == 1 and p.get("sex", "M") == "M" or k > 1 and k % 2 == 0 else "F",
-            rel=relation(k), line=line_of(k), facts=p.get("f", []), note=p.get("note", ""), records=[r for r in p.get("r", []) if r in recs],
+            rel=relation(k, is_sk), line=line_of(k), facts=p.get("f", []), note=p.get("note", ""), records=[r for r in p.get("r", []) if r in recs],
             father=slugs.get(2 * k), mother=slugs.get(2 * k + 1),
             fatherUnknown=(2 * k in P and placeholder(P[2 * k])), motherUnknown=(2 * k + 1 in P and placeholder(P[2 * k + 1])),
             child=slugs.get(k // 2) if k > 1 else None, spouse=slugs.get(k ^ 1) if k > 1 else None,
@@ -238,7 +251,7 @@ def main():
             side=[dict(name=s["n"], text=s["t"], records=[r for r in s.get("r", []) if r in recs]) for s in SIDE if s["k"] == k],
             docs=[dict(img=d["img"], caption=d["popis"]) for d in docs_cfg if k in d.get("osoby", [])],
             children=[slugs[c] for c in [k // 2] + [a // 2 for a in aliases_of.get(k, [])] if k > 1 and c in slugs],
-            also=[dict(k=a, rel=relation(a), line=line_of(a), child=slugs.get(a // 2)) for a in aliases_of.get(k, [])],
+            also=[dict(k=a, rel=relation(a, is_sk), line=line_of(a), child=slugs.get(a // 2)) for a in aliases_of.get(k, [])],
         )
         if aliases_of.get(k):
             for a in aliases_of[k]:
@@ -337,12 +350,15 @@ def main():
 
     write(os.path.join(WEB, "src", "data", "site.json"), json.dumps(site, ensure_ascii=False, indent=1))
     gen_dir = os.path.join(WEB, "src", "generated")
-    for src, dst in (("archivni_dotazy.md", "dotazy.md"), ("research_log.md", "denik.md"), ("zajimavosti.md", "zajimavosti.md")):
+    study_files = [(s["soubor"], s["soubor"]) for s in cfg.get("studie", []) if s.get("soubor")]
+    md_exports = [("archivni_dotazy.md", "dotazy.md"), ("research_log.md", "denik.md"), ("zajimavosti.md", "zajimavosti.md")] + study_files
+    for src, dst in md_exports:
         path = os.path.join(DATA, src)
         text = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
         write(os.path.join(gen_dir, dst), strip_comments(re.sub(r"^# .*\n", "", text, count=1)))
     story = os.path.join(DATA, "pribeh.md")
-    write(os.path.join(gen_dir, "pribeh.md"), strip_comments(open(story, encoding="utf-8").read()) if has_story else "---\ntitle: Příběh\nlead: ''\n---\n")
+    fallback_story = "---\ntitle: Príbeh\nlead: ''\n---\n" if is_sk else "---\ntitle: Příběh\nlead: ''\n---\n"
+    write(os.path.join(gen_dir, "pribeh.md"), strip_comments(open(story, encoding="utf-8").read()) if has_story else fallback_story)
 
     hrefs = os.path.join(gen_dir, "fan_hrefs.json")
     json.dump({k: f"/osoba/{s}/" for k, s in slugs.items()}, open(hrefs, "w", encoding="utf-8", newline="\n"))
@@ -377,7 +393,8 @@ def main():
 
     # odkazy v textech, které nikam nevedou (adresa osoby se změní třeba doplněním roku narození: jan-novak → jan-novak-1798)
     targets = dict(osoba=people, zdroj=recs, rod=lines, rodina=families)
-    texts = {f: open(os.path.join(gen_dir, f), encoding="utf-8").read() for f in ("pribeh.md", "zajimavosti.md")}
+    md_to_check = ["pribeh.md", "zajimavosti.md"] + [dst for _, dst in study_files]
+    texts = {f: open(os.path.join(gen_dir, f), encoding="utf-8").read() for f in md_to_check if os.path.exists(os.path.join(gen_dir, f))}
     texts["web.json"] = json.dumps(cfg, ensure_ascii=False)
     texts["osoby.py (hypotézy)"] = json.dumps(hypotheses, ensure_ascii=False)
     broken = [(f, m.group(0)) for f, t in texts.items()
